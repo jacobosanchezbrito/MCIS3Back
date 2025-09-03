@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "direccion" DROP DEFAULT,
+ALTER COLUMN "nombre" DROP DEFAULT,
+ALTER COLUMN "telefono" DROP DEFAULT;
