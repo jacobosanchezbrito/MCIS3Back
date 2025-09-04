@@ -4,7 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { ProductEstado, LogTipo } from '@prisma/client';
-
+//import { ProductEstado, LogTipo } from 'generated/prisma';
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}

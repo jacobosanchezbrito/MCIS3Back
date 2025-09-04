@@ -14,4 +14,9 @@ async function bootstrap() {
 bootstrap();
 
 //Comentario de prueba para ver si funciona git con las ramas como deberian ser. 
+<<<<<<< HEAD
 //hola
+=======
+
+//COMENTARIO DE PRUEBA ######, PARA VER SI FUNCIONA EL GIT 
+>>>>>>> origin/main

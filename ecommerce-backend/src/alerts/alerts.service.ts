@@ -11,6 +11,7 @@ export class AlertsService {
       include: { producto: { select: { id: true, nombre: true } } },
     });
   }
+  
 
   async marcarAtendida(id: number) {
     return this.prisma.alerta.update({
