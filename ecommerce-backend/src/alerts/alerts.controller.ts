@@ -14,7 +14,7 @@ export class AlertsController {
   findPendientes() {
     return this.alertsService.findPendientes();
   }
-
+  
   @Patch(':id/atendida')
   marcarAtendida(@Param('id', ParseIntPipe) id: number) {
     return this.alertsService.marcarAtendida(id);
