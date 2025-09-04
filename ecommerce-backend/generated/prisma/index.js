@@ -13,6 +13,7 @@ const {
   empty,
   join,
   raw,
+  skip,
   Decimal,
   Debug,
   objectEnumValues,
@@ -31,12 +32,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 5.12.0
- * Query Engine version: 473ed3124229e22d881cb7addf559799debae1ab
+ * Prisma Client JS version: 5.22.0
+ * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
  */
 Prisma.prismaVersion = {
-  client: "5.12.0",
-  engine: "473ed3124229e22d881cb7addf559799debae1ab"
+  client: "5.22.0",
+  engine: "605197351a3c8bdd595af2d2a9bc3025bca48ea2"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -74,6 +75,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+
 
 
   const path = require('path')
@@ -198,6 +201,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
+    "sourceFilePath": "C:\\Users\\Tarita\\Documents\\Proyectos\\IS3\\MCe\\Backend\\ecommerce-backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -205,12 +209,13 @@ const config = {
     "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
-  "clientVersion": "5.12.0",
-  "engineVersion": "473ed3124229e22d881cb7addf559799debae1ab",
+  "clientVersion": "5.22.0",
+  "engineVersion": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
   "datasourceNames": [
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -219,8 +224,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                    Int       @id @default(autoincrement())\n  email                 String    @unique\n  password              String\n  rol                   String    @default(\"cliente\")\n  nombre                String            \n  direccion             String          \n  telefono              String           \n  createdAt             DateTime  @default(now())\n  updatedAt             DateTime  @updatedAt\n  verificado            Boolean   @default(false)\n  verificationCode      String?   \n  verificationExpires   DateTime?\n  resetToken            String?   //Token temporal de recuperacion\n  resetTokenExpiry      DateTime? //Fecha de expiracion (15min)\n  failedAttempts        Int       @default(0)\n  lockUntil             DateTime?\n}\n\nmodel Product {\n  id              Int           @id @default(autoincrement())\n  nombre          String\n  descripcion     String        @db.VarChar(150)\n  precio          Float\n  stock           Int\n  stockMinimo     Int           @default(0)   \n  imagenUrl       String\n  categoria       String\n  subcategoria    String? \n  marca           String?\n  descuento       Float?        // porcentaje\n  estado          ProductEstado @default(ACTIVO)\n  createdAt       DateTime      @default(now())\n  updatedAt       DateTime      @updatedAt\n  StockLogs       StockLog[]\n  Alertas         Alerta[]       \n}\n\nmodel StockLog {\n  id          Int       @id @default(autoincrement())\n  producto    Product   @relation(fields: [productoId], references: [id])\n  productoId  Int\n  cantidad    Int\n  tipo        LogTipo\n  fecha       DateTime  @default(now())\n  usuarioId   Int?\n}\n\nenum ProductEstado {\n  ACTIVO\n  INACTIVO\n  AGOTADO\n}\n\nenum LogTipo {\n  ENTRADA\n  SALIDA\n}\n\nmodel Alerta {\n  id              Int       @id @default(autoincrement())\n  mensaje         String\n  producto        Product   @relation(fields: [productoId], references: [id])\n  productoId      Int\n  fechaGeneracion DateTime  @default(now())\n  atendida        Boolean   @default(false)  \n  fechaAtendida   DateTime?\n}",
-  "inlineSchemaHash": "688a99a651ce7d84c174cd15990b22e8bd6cb4c12260be91c694602ee9e37653",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                  Int       @id @default(autoincrement())\n  email               String    @unique\n  password            String\n  rol                 String    @default(\"cliente\")\n  nombre              String\n  direccion           String\n  telefono            String\n  createdAt           DateTime  @default(now())\n  updatedAt           DateTime  @updatedAt\n  verificado          Boolean   @default(false)\n  verificationCode    String?\n  verificationExpires DateTime?\n  resetToken          String? //Token temporal de recuperacion\n  resetTokenExpiry    DateTime? //Fecha de expiracion (15min)\n  failedAttempts      Int       @default(0)\n  lockUntil           DateTime?\n}\n\nmodel Product {\n  id           Int           @id @default(autoincrement())\n  nombre       String\n  descripcion  String        @db.VarChar(150)\n  precio       Float\n  stock        Int\n  stockMinimo  Int           @default(0)\n  imagenUrl    String\n  categoria    String\n  subcategoria String?\n  marca        String?\n  descuento    Float? // porcentaje\n  estado       ProductEstado @default(ACTIVO)\n  createdAt    DateTime      @default(now())\n  updatedAt    DateTime      @updatedAt\n  StockLogs    StockLog[]\n  Alertas      Alerta[]\n}\n\nmodel StockLog {\n  id         Int      @id @default(autoincrement())\n  producto   Product  @relation(fields: [productoId], references: [id])\n  productoId Int\n  cantidad   Int\n  tipo       LogTipo\n  fecha      DateTime @default(now())\n  usuarioId  Int?\n}\n\nenum ProductEstado {\n  ACTIVO\n  INACTIVO\n  AGOTADO\n}\n\nenum LogTipo {\n  ENTRADA\n  SALIDA\n}\n\nmodel Alerta {\n  id              Int       @id @default(autoincrement())\n  mensaje         String\n  producto        Product   @relation(fields: [productoId], references: [id])\n  productoId      Int\n  fechaGeneracion DateTime  @default(now())\n  atendida        Boolean   @default(false)\n  fechaAtendida   DateTime?\n}\n",
+  "inlineSchemaHash": "dce6fc4608385f8ce64372459dd99362ba1d72f03920aaaa3a516e81a702128c",
   "copyEngine": true
 }
 

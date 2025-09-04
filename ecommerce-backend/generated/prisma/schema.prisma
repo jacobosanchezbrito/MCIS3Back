@@ -15,51 +15,51 @@ datasource db {
 }
 
 model User {
-  id                    Int       @id @default(autoincrement())
-  email                 String    @unique
-  password              String
-  rol                   String    @default("cliente")
-  nombre                String            
-  direccion             String          
-  telefono              String           
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  verificado            Boolean   @default(false)
-  verificationCode      String?   
-  verificationExpires   DateTime?
-  resetToken            String?   //Token temporal de recuperacion
-  resetTokenExpiry      DateTime? //Fecha de expiracion (15min)
-  failedAttempts        Int       @default(0)
-  lockUntil             DateTime?
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  password            String
+  rol                 String    @default("cliente")
+  nombre              String
+  direccion           String
+  telefono            String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  verificado          Boolean   @default(false)
+  verificationCode    String?
+  verificationExpires DateTime?
+  resetToken          String? //Token temporal de recuperacion
+  resetTokenExpiry    DateTime? //Fecha de expiracion (15min)
+  failedAttempts      Int       @default(0)
+  lockUntil           DateTime?
 }
 
 model Product {
-  id              Int           @id @default(autoincrement())
-  nombre          String
-  descripcion     String        @db.VarChar(150)
-  precio          Float
-  stock           Int
-  stockMinimo     Int           @default(0)   
-  imagenUrl       String
-  categoria       String
-  subcategoria    String? 
-  marca           String?
-  descuento       Float?        // porcentaje
-  estado          ProductEstado @default(ACTIVO)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  StockLogs       StockLog[]
-  Alertas         Alerta[]       
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  descripcion  String        @db.VarChar(150)
+  precio       Float
+  stock        Int
+  stockMinimo  Int           @default(0)
+  imagenUrl    String
+  categoria    String
+  subcategoria String?
+  marca        String?
+  descuento    Float? // porcentaje
+  estado       ProductEstado @default(ACTIVO)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  StockLogs    StockLog[]
+  Alertas      Alerta[]
 }
 
 model StockLog {
-  id          Int       @id @default(autoincrement())
-  producto    Product   @relation(fields: [productoId], references: [id])
-  productoId  Int
-  cantidad    Int
-  tipo        LogTipo
-  fecha       DateTime  @default(now())
-  usuarioId   Int?
+  id         Int      @id @default(autoincrement())
+  producto   Product  @relation(fields: [productoId], references: [id])
+  productoId Int
+  cantidad   Int
+  tipo       LogTipo
+  fecha      DateTime @default(now())
+  usuarioId  Int?
 }
 
 enum ProductEstado {
@@ -79,6 +79,6 @@ model Alerta {
   producto        Product   @relation(fields: [productoId], references: [id])
   productoId      Int
   fechaGeneracion DateTime  @default(now())
-  atendida        Boolean   @default(false)  
+  atendida        Boolean   @default(false)
   fechaAtendida   DateTime?
 }
