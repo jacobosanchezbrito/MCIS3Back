@@ -43,4 +43,16 @@ export class MailService {
       previewUrl: nodemailer.getTestMessageUrl(info), // 👈 Link para ver el correo
     };
   }
+
+  async sendStockAlert(to: string, producto: string, stock: number) {
+    const subject = `⚠️ Stock bajo: ${producto}`;
+    const text = `El producto "${producto}" ha alcanzado un nivel crítico de stock (${stock} unidades).`;
+    const html = `
+      <h2>⚠️ Alerta de stock bajo</h2>
+      <p>El producto <strong>${producto}</strong> está en nivel crítico.</p>
+      <p>Unidades restantes: <strong>${stock}</strong></p>
+    `;
+
+    return this.sendMail(to, subject, text, html);
+  }
 }

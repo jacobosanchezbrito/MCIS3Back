@@ -80,4 +80,5 @@ model Alerta {
   fechaGeneracion DateTime  @default(now())
   atendida        Boolean   @default(false)  
   fechaAtendida   DateTime?
+  notificada      Boolean   @default(false)
 }

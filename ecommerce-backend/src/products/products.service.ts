@@ -4,10 +4,14 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { ProductEstado, LogTipo } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 //import { ProductEstado, LogTipo } from 'generated/prisma';
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService, // 👈 inyectamos
+  ) {}
 
   async create(createProductDto: CreateProductDto) {
     return this.prisma.product.create({
@@ -47,37 +51,46 @@ export class ProductsService {
   }
 
   async updateStock(id: number, updateStockDto: UpdateStockDto, usuarioId: number) {
-    const producto = await this.findOne(id);
-    const nuevoStock = producto.stock + updateStockDto.cantidad;
+  const producto = await this.findOne(id);
+  const nuevoStock = producto.stock + updateStockDto.cantidad;
 
-    if (nuevoStock < 0) throw new BadRequestException('Stock insuficiente');
+  if (nuevoStock < 0) throw new BadRequestException('Stock insuficiente');
 
-    // Actualiza stock
-    await this.prisma.product.update({
-      where: { id },
-      data: { stock: nuevoStock, estado: nuevoStock === 0 ? ProductEstado.AGOTADO : ProductEstado.ACTIVO },
-    });
+  // Actualiza stock
+  await this.prisma.product.update({
+    where: { id },
+    data: {
+      stock: nuevoStock,
+      estado: nuevoStock === 0 ? ProductEstado.AGOTADO : ProductEstado.ACTIVO,
+    },
+  });
 
-    // Registra historial
-    await this.prisma.stockLog.create({
+  // Registra historial
+  await this.prisma.stockLog.create({
+    data: {
+      productoId: id,
+      cantidad: updateStockDto.cantidad,
+      tipo: updateStockDto.cantidad > 0 ? LogTipo.ENTRADA : LogTipo.SALIDA,
+      usuarioId,
+    },
+  });
+
+  // ⚠️ Verificación de alerta
+  if (nuevoStock <= producto.stockMinimo) {
+    await this.prisma.alerta.create({
       data: {
         productoId: id,
-        cantidad: updateStockDto.cantidad,
-        tipo: updateStockDto.cantidad > 0 ? LogTipo.ENTRADA : LogTipo.SALIDA,
-        usuarioId,
+        mensaje: `El producto "${producto.nombre}" está en nivel crítico de stock (${nuevoStock} unidades)`,
       },
     });
-    // ⚠️ Verificación de alerta
-    if (nuevoStock <= producto.stockMinimo) {
-      await this.prisma.alerta.create({
-        data: {
-          productoId: id,
-          mensaje: `El producto "${producto.nombre}" está en nivel crítico de stock (${nuevoStock} unidades)`,
-        },
-      });
-    }
-    return { id, nuevoStock };
+
+    // Enviar correo al admin (Ethereal para pruebas)
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@mercadocafetero.com';
+    await this.mailService.sendStockAlert(adminEmail, producto.nombre, nuevoStock);
   }
+
+  return { id, nuevoStock };
+}
 
   async findLogs(id: number) {
     // primero verificamos que el producto exista
