@@ -3,6 +3,7 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
+import { FilterStockLogDto } from './dto/filter-stock-log.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -64,5 +65,21 @@ export class ProductsController {
   findLogs(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findLogs(id);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('criticos')
+  findCriticos() {
+    return this.productsService.findCriticos();
+  }
+
+  // products.controller.ts
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('logs/rango')
+  findLogsByDateRange(@Body() dto: FilterStockLogDto) {
+    return this.productsService.findLogsByDateRange(dto);
+  }
+
 
 }

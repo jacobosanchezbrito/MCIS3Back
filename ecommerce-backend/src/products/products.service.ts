@@ -5,6 +5,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { ProductEstado, LogTipo } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
+import { FilterStockLogDto } from './dto/filter-stock-log.dto';
 //import { ProductEstado, LogTipo } from 'generated/prisma';
 @Injectable()
 export class ProductsService {
@@ -106,4 +107,42 @@ export class ProductsService {
       },
     });
   }
+
+  async findCriticos() {
+    return this.prisma.product.findMany({
+      where: {
+        stock: { lte: this.prisma.product.fields.stockMinimo }, // 👈 compara stock con stockMinimo
+        estado: ProductEstado.ACTIVO,
+      },
+      select: {
+        id: true,
+        nombre: true,
+        stock: true,
+        stockMinimo: true,
+        categoria: true,
+      },
+    });
+  }
+
+    // products.service.ts
+  async findLogsByDateRange(dto: FilterStockLogDto) {
+    const { fechaInicio, fechaFin, productoId } = dto;
+
+    return this.prisma.stockLog.findMany({
+      where: {
+        fecha: {
+          gte: new Date(fechaInicio),
+          lte: new Date(fechaFin),
+        },
+        ...(productoId ? { productoId } : {}),
+      },
+      orderBy: { fecha: 'desc' },
+      include: {
+        producto: {
+          select: { id: true, nombre: true },
+        },
+      },
+    });
+  }
+
 }
