@@ -39,11 +39,12 @@ model Product {
   precio          Float
   stock           Int
   stockMinimo     Int           @default(0)   
-  imagenUrl       String
+  imagenUrl       String?       // antes era obligatorio
+  imagenPublicId  String?       // NUEVO
   categoria       String
   subcategoria    String? 
   marca           String?
-  descuento       Float?        // porcentaje
+  descuento       Float?        
   estado          ProductEstado @default(ACTIVO)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

@@ -196,5 +196,4 @@ export class ProductsService {
     imagenPublicId: returnedPublicId,
   };
 }
-
 }
