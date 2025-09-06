@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, Request, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -8,9 +8,18 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
+// ⬇️ NUEVOS IMPORTS PARA SUBIR IMAGEN
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+
 @Controller('productos')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    // ⬇️ INYECTAMOS CLOUDINARY
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   // --- Admin only ---
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -81,5 +90,36 @@ export class ProductsController {
     return this.productsService.findLogsByDateRange(dto);
   }
 
+  // ⬇️⬇️⬇️ NUEVO ENDPOINT: SUBIR IMAGEN A CLOUDINARY
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post(':id/imagen')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(new BadRequestException('Solo JPG, JPEG, PNG o WEBP'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+async uploadImage(
+  @Param('id', ParseIntPipe) id: number,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) throw new BadRequestException('No se envió archivo');
 
+  const { secure_url, public_id } = await this.cloudinaryService.uploadImage(file.buffer, 'productos');
+
+  const updated = await this.productsService.updateImageUrl(id, secure_url, public_id);
+
+  return {
+    message: 'Imagen actualizada',
+    imagenUrl: updated.imagenUrl,
+    imagenPublicId: updated.imagenPublicId ?? null,
+  };
+}
 }
