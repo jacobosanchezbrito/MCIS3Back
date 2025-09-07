@@ -75,6 +75,14 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  // ⬇️ PON este ANTES de :id para evitar colisión
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('criticos')
+  findCriticos() {
+    return this.productsService.findCriticos();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOne(id);
@@ -85,13 +93,6 @@ export class ProductsController {
   @Get(':id/logs')
   findLogs(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findLogs(id);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Get('criticos')
-  findCriticos() {
-    return this.productsService.findCriticos();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

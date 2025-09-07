@@ -6,12 +6,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '../mail/mail.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    PrismaModule,
+    PrismaModule, UsersModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, UsersModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'), // <-- lee el secret desde .env

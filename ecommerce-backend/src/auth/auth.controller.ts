@@ -6,10 +6,14 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ConfirmEmailDto } from './dto/confirm-email.dto';
+import { UsersService } from '../users/users.service';
 
 @Controller('autenticacion')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService, // 👈 inyección con camelCase
+  ) {}
 
   @Post('registro')
   async register(@Body() dto: RegisterDto) {
@@ -21,11 +25,12 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // Endpoint protegido
   @UseGuards(JwtAuthGuard)
   @Get('perfil')
-  getPerfil(@Request() req) {
-    return req.user; // viene del validate() del JwtStrategy
+  async getPerfil(@Request() req) {
+    const userId = Number(req.user.userId); 
+    const user = await this.usersService.findOne(userId);
+    return user; 
   }
 
   @Post('request-password-reset')
