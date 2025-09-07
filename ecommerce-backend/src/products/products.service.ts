@@ -6,17 +6,13 @@ import { UpdateStockDto } from './dto/update-stock.dto';
 import { ProductEstado, LogTipo } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { FilterStockLogDto } from './dto/filter-stock-log.dto';
-//import { ProductEstado, LogTipo } from 'generated/prisma';
-
-// ⬇️ NUEVO: import del servicio de Cloudinary
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
-    private mailService: MailService, // 👈 inyectamos
-    // ⬇️ NUEVO: inyección de CloudinaryService
+    private mailService: MailService,
     private cloudinaryService: CloudinaryService,
   ) {}
 
@@ -83,7 +79,7 @@ export class ProductsService {
     });
 
     // ⚠️ Verificación de alerta
-    if (nuevoStock <= producto.stockMinimo) {
+    if (nuevoStock <= (producto.stockMinimo ?? 0)) {
       await this.prisma.alerta.create({
         data: {
           productoId: id,
@@ -100,26 +96,20 @@ export class ProductsService {
   }
 
   async findLogs(id: number) {
-    // primero verificamos que el producto exista
     await this.findOne(id);
-
     return this.prisma.stockLog.findMany({
       where: { productoId: id },
       orderBy: { fecha: 'desc' },
       include: {
-        producto: {
-          select: { id: true, nombre: true },
-        },
+        producto: { select: { id: true, nombre: true } },
       },
     });
   }
 
+  // ✅ Corrección: Prisma no permite campo vs campo en where; filtramos en JS
   async findCriticos() {
-    return this.prisma.product.findMany({
-      where: {
-        stock: { lte: this.prisma.product.fields.stockMinimo }, // 👈 compara stock con stockMinimo
-        estado: ProductEstado.ACTIVO,
-      },
+    const activos = await this.prisma.product.findMany({
+      where: { estado: ProductEstado.ACTIVO },
       select: {
         id: true,
         nombre: true,
@@ -128,9 +118,9 @@ export class ProductsService {
         categoria: true,
       },
     });
+    return activos.filter(p => p.stock <= (p.stockMinimo ?? 0));
   }
 
-  // products.service.ts
   async findLogsByDateRange(dto: FilterStockLogDto) {
     const { fechaInicio, fechaFin, productoId } = dto;
 
@@ -151,49 +141,36 @@ export class ProductsService {
     });
   }
 
+  // ✅ Versión "migrada": BD con imagenPublicId y imagenUrl opcional
   async updateImageUrl(
-  id: number,
-  url: string,
-  newPublicId?: string
-): Promise<{ id: number; imagenUrl: string; imagenPublicId: string | null }> {
-  const producto = await this.prisma.product.findUnique({ where: { id } });
-  if (!producto) throw new NotFoundException('Producto no encontrado');
-
-  // Intentar borrar imagen previa si existe (aunque el campo no esté en el tipo generado)
-  const prevPublicId = (producto as any).imagenPublicId as string | undefined;
-  if (prevPublicId && prevPublicId !== newPublicId) {
-    try { await this.cloudinaryService.deleteImage(prevPublicId); } catch { /* ignore */ }
-  }
-
-  // Preparar data de actualización: siempre imagenUrl; imagenPublicId si lo tienes/migras
-  const data: any = { imagenUrl: url };
-  if (typeof newPublicId !== 'undefined') data.imagenPublicId = newPublicId ?? null;
-
-  // Hacemos update. Si el schema no tiene imagenPublicId aún, puede fallar: hacemos fallback.
-  let updated: any;
-  try {
-    updated = await this.prisma.product.update({
+    id: number,
+    url: string,
+    newPublicId?: string
+  ): Promise<{ id: number; imagenUrl: string | null; imagenPublicId: string | null }> {
+    const producto = await this.prisma.product.findUnique({
       where: { id },
-      data: data as any,
-      select: { id: true, imagenUrl: true }, // no seleccionamos imagenPublicId para evitar error de tipos
+      select: { id: true, imagenPublicId: true },
     });
-  } catch {
-    // Fallback si el campo no existe en la BD/schema
-    updated = await this.prisma.product.update({
+    if (!producto) throw new NotFoundException('Producto no encontrado');
+
+    // Borra imagen previa si existe y cambia
+    if (producto.imagenPublicId && producto.imagenPublicId !== newPublicId) {
+      try {
+        await this.cloudinaryService.deleteImage(producto.imagenPublicId);
+      } catch {
+        // No detenemos la actualización si el delete falla
+      }
+    }
+
+    const updated = await this.prisma.product.update({
       where: { id },
-      data: { imagenUrl: url },
-      select: { id: true, imagenUrl: true },
+      data: {
+        imagenUrl: url ?? null,
+        imagenPublicId: newPublicId ?? null,
+      },
+      select: { id: true, imagenUrl: true, imagenPublicId: true },
     });
+
+    return updated;
   }
-
-  // Valor a devolver: preferimos el nuevo publicId si nos lo pasaron; si no, el previo; si no, null.
-  const returnedPublicId =
-    typeof newPublicId !== 'undefined' ? (newPublicId ?? null) : (prevPublicId ?? null);
-
-  return {
-    id: updated.id,
-    imagenUrl: updated.imagenUrl as string,
-    imagenPublicId: returnedPublicId,
-  };
-}
 }
