@@ -12,7 +12,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000; // Railway inyecta PORT
+  // Usar siempre el puerto inyectado por Railway
+  const port = process.env.PORT || 4000;  // Railway inyecta PORT
   await app.listen(port);
 }
 bootstrap();
