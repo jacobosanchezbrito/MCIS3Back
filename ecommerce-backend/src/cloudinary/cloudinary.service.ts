@@ -7,14 +7,14 @@ export class CloudinaryService {
   private readonly logger = new Logger(CloudinaryService.name);
 
   constructor() {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
+    // Lee CLOUDINARY_URL del .env automáticamente y forza HTTPS
+    cloudinary.config({ secure: true });
   }
 
-  uploadImage(buffer: Buffer, folder = 'productos'): Promise<{ secure_url: string; public_id: string }> {
+  uploadImage(
+    buffer: Buffer,
+    folder = 'productos'
+  ): Promise<{ secure_url: string; public_id: string }> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder, resource_type: 'image' },

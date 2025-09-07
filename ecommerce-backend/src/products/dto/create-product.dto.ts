@@ -35,12 +35,14 @@ export class CreateProductDto {
   @IsOptional()
   marca?: string;
 
+  // ⬇️ ahora opcional para permitir crear el producto sin imagen
   @IsString()
-  imagenUrl: string;
+  @IsOptional()
+  imagenUrl?: string;
 
   @IsEnum(ProductEstado)
   @IsOptional()
-  estado?: ProductEstado; 
+  estado?: ProductEstado;
 
   @IsNumber()
   @IsOptional()

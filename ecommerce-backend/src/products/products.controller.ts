@@ -1,4 +1,21 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, Request, ParseIntPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -7,17 +24,12 @@ import { FilterStockLogDto } from './dto/filter-stock-log.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-
-// ⬇️ NUEVOS IMPORTS PARA SUBIR IMAGEN
-import { FileInterceptor } from '@nestjs/platform-express';
-import * as multer from 'multer';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('productos')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
-    // ⬇️ INYECTAMOS CLOUDINARY
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -48,7 +60,7 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Patch(':id/stock') 
+  @Patch(':id/stock')
   updateStock(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStockDto: UpdateStockDto,
@@ -58,18 +70,18 @@ export class ProductsController {
   }
 
   // --- Clientes pueden ver ---
-  @Get() 
+  @Get()
   findAll() {
     return this.productsService.findAll();
   }
 
-  @Get(':id') 
+  @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin') 
+  @Roles('admin')
   @Get(':id/logs')
   findLogs(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findLogs(id);
@@ -82,7 +94,6 @@ export class ProductsController {
     return this.productsService.findCriticos();
   }
 
-  // products.controller.ts
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post('logs/rango')
@@ -90,7 +101,7 @@ export class ProductsController {
     return this.productsService.findLogsByDateRange(dto);
   }
 
-  // ⬇️⬇️⬇️ NUEVO ENDPOINT: SUBIR IMAGEN A CLOUDINARY
+  // --- NUEVO: subir imagen del producto ---
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post(':id/imagen')
@@ -106,20 +117,25 @@ export class ProductsController {
       },
     }),
   )
-async uploadImage(
-  @Param('id', ParseIntPipe) id: number,
-  @UploadedFile() file: Express.Multer.File,
-) {
-  if (!file) throw new BadRequestException('No se envió archivo');
+  async uploadImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('No se envió archivo');
 
-  const { secure_url, public_id } = await this.cloudinaryService.uploadImage(file.buffer, 'productos');
+    // 1) Subir a Cloudinary
+    const { secure_url, public_id } = await this.cloudinaryService.uploadImage(
+      file.buffer,
+      'productos'
+    );
 
-  const updated = await this.productsService.updateImageUrl(id, secure_url, public_id);
+    // 2) Guardar URL y public_id en BD (borrando imagen anterior si existe)
+    const updated = await this.productsService.updateImageUrl(id, secure_url, public_id);
 
-  return {
-    message: 'Imagen actualizada',
-    imagenUrl: updated.imagenUrl,
-    imagenPublicId: updated.imagenPublicId ?? null,
-  };
-}
+    return {
+      message: 'Imagen actualizada',
+      imagenUrl: updated.imagenUrl,
+      imagenPublicId: updated.imagenPublicId,
+    };
+  }
 }

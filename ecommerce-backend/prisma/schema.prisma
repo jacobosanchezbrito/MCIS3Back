@@ -39,8 +39,8 @@ model Product {
   precio          Float
   stock           Int
   stockMinimo     Int           @default(0)   
-  imagenUrl       String?       // antes era obligatorio
-  imagenPublicId  String?       // NUEVO
+  imagenUrl       String?       
+  imagenPublicId  String?       
   categoria       String
   subcategoria    String? 
   marca           String?
