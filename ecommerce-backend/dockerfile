@@ -1,0 +1,32 @@
+# Etapa de construcción
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copiar el package.json y package-lock.json
+COPY ecommerce-backend/package*.json ./
+
+# Limpiar caché de npm para evitar posibles problemas de bloqueos
+RUN npm cache clean --force
+
+# Instalar las dependencias
+RUN npm ci
+
+# Copiar el código fuente de la carpeta backend
+COPY ecommerce-backend/ .
+
+# Compilar el proyecto
+RUN npm run build
+
+# Etapa de producción
+FROM node:20-alpine
+WORKDIR /app
+
+# Copiar los archivos generados por la etapa de construcción
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/node_modules /app/node_modules
+
+# Exponer el puerto de la aplicación
+EXPOSE 4000
+
+# Comando para arrancar la aplicación
+CMD ["node", "dist/main.js"]
