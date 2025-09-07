@@ -92,6 +92,9 @@
   },
   "engines": {
     "node": ">=20"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   }
 }
