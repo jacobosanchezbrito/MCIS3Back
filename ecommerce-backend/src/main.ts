@@ -12,10 +12,3 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4000); // usa 4000 para diferenciarlo del frontend
 }
 bootstrap();
-//hola
-
-//hola2
-//hola3
-//hola4
-
-//hola 7
