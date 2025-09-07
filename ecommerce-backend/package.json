@@ -90,14 +90,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-<<<<<<< Updated upstream
-=======
   },
+  
   "engines": {
     "node": ">=20"
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
   }
 }
