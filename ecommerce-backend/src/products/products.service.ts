@@ -25,11 +25,11 @@ export class ProductsService {
     });
   }
 
-  async findAll() {
-    return this.prisma.product.findMany({
-      where: { estado: ProductEstado.ACTIVO },
-    });
-  }
+async findAll() {
+  return this.prisma.product.findMany({
+    orderBy: { id: 'desc' },
+  });
+}
 
   async findOne(id: number) {
     const producto = await this.prisma.product.findUnique({ where: { id } });
@@ -106,20 +106,29 @@ export class ProductsService {
     });
   }
 
-  // ✅ Corrección: Prisma no permite campo vs campo en where; filtramos en JS
   async findCriticos() {
-    const activos = await this.prisma.product.findMany({
-      where: { estado: ProductEstado.ACTIVO },
-      select: {
-        id: true,
-        nombre: true,
-        stock: true,
-        stockMinimo: true,
-        categoria: true,
-      },
-    });
-    return activos.filter(p => p.stock <= (p.stockMinimo ?? 0));
-  }
+  const productos = await this.prisma.product.findMany({
+    select: {
+      id: true,
+      nombre: true,
+      stock: true,
+      stockMinimo: true,
+      categoria: true,
+      subcategoria: true,   // 👈 la UI lo muestra
+      imagenUrl: true,      // 👈 la UI lo muestra
+      estado: true,         // 👈 badge en la tabla
+    },
+    orderBy: { id: 'desc' },
+  });
+
+  // Si consideras “crítico” solo cuando está ACTIVO y bajo el mínimo:
+  return productos.filter(
+    (p) => p.estado === ProductEstado.ACTIVO && p.stock <= (p.stockMinimo ?? 0)
+  );
+
+  // Si quieres incluir también INACTIVO/AGOTADO (no recomendado):
+  // return productos.filter((p) => p.stock <= (p.stockMinimo ?? 0));
+}
 
   async findLogsByDateRange(dto: FilterStockLogDto) {
     const { fechaInicio, fechaFin, productoId } = dto;
