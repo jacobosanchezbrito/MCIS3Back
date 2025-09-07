@@ -6,8 +6,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      process.env.FRONTEND_URL ?? 'http://localhost:3000', // dev local
-      process.env.FRONTEND_URL_PREVIEW ?? ''               // opcional (deploys de preview)
+      process.env.FRONTEND_URL ?? 'http://localhost:3000',  // para entorno local
+      'https://mcis-3-front.vercel.app',  // Agrega tu URL de frontend desplegado en Vercel
     ].filter(Boolean),
     credentials: true,
   });
