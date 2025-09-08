@@ -10,8 +10,15 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    // Configura SendGrid con la API Key desde el archivo .env
-    sgMail.setApiKey('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');  // Usar la API Key desde las variables de entorno
+    // Aquí usamos la aserción de tipo para indicar que `process.env.SENDGRID_API_KEY` no es `undefined`
+    const sendGridApiKey = process.env.SENDGRID_API_KEY!;
+    
+    if (!sendGridApiKey) {
+      throw new Error('La API Key de SendGrid no está definida en las variables de entorno');
+    }
+
+    // Configura SendGrid con la API Key desde las variables de entorno
+    sgMail.setApiKey(sendGridApiKey);  // Usar la API Key desde las variables de entorno
   }
 
   // Método para enviar correos
