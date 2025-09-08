@@ -1,49 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import * as sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class MailService {
-  private transporter;
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    // 🚀 Crea un test account en Ethereal
-    nodemailer.createTestAccount().then((testAccount) => {
-      this.transporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure, // true para 465, false para otros puertos
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-
-      this.logger.log(`Cuenta de prueba Ethereal creada: ${testAccount.user}`);
-      this.logger.log(`Contraseña: ${testAccount.pass}`);
-    });
+    // Configura SendGrid con tu API Key
+    sgMail.setApiKey('tu-api-key-de-sendgrid');  // Aquí usa tu API Key de SendGrid
   }
 
+  // Método para enviar correos
   async sendMail(to: string, subject: string, text: string, html?: string) {
-    const mailOptions = {
-      from: '"Mercado Cafetero" <no-reply@mercadocafetero.com>',
-      to,
+    const msg = {
+      to,  // Destinatario
+      from: 'no-reply@mercadocafetero.com',  // De qué correo se envía
       subject,
       text,
       html,
     };
 
-    const info = await this.transporter.sendMail(mailOptions);
+    try {
+      // Envía el correo con SendGrid
+      const response = await sgMail.send(msg);
+      this.logger.log(`Correo enviado: ${response[0].statusCode}`);
+      this.logger.log(`Respuesta del servidor de SendGrid: ${response[0].body}`);
 
-    this.logger.log(`Correo enviado: ${info.messageId}`);
-    this.logger.log(`Vista previa: ${nodemailer.getTestMessageUrl(info)}`);
-
-    return {
-      messageId: info.messageId,
-      previewUrl: nodemailer.getTestMessageUrl(info), // 👈 Link para ver el correo
-    };
+      return {
+        messageId: response[0].headers['x-message-id'],  // ID del mensaje de SendGrid
+      };
+    } catch (error) {
+      this.logger.error(`Error al enviar correo: ${error}`);
+      throw error;
+    }
   }
 
+  // Método específico para enviar alertas de stock bajo
   async sendStockAlert(to: string, producto: string, stock: number) {
     const subject = `⚠️ Stock bajo: ${producto}`;
     const text = `El producto "${producto}" ha alcanzado un nivel crítico de stock (${stock} unidades).`;
