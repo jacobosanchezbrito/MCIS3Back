@@ -1,20 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as sgMail from '@sendgrid/mail';
+import { config } from 'dotenv';
+
+// Cargar las variables de entorno
+config();
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    // Configura SendGrid con tu API Key
-    sgMail.setApiKey('tu-api-key-de-sendgrid');  // Aquí usa tu API Key de SendGrid
+    // Configura SendGrid con la API Key desde el archivo .env
+    sgMail.setApiKey('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');  // Usar la API Key desde las variables de entorno
   }
 
   // Método para enviar correos
   async sendMail(to: string, subject: string, text: string, html?: string) {
     const msg = {
       to,  // Destinatario
-      from: 'no-reply@mercadocafetero.com',  // De qué correo se envía
+      from: 'no-reply@mercadocafetero.com',  // Correo verificado desde tu dominio
       subject,
       text,
       html,

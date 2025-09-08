@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { config } from 'dotenv';
 
+// Cargar variables de entorno desde el archivo .env
+config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
