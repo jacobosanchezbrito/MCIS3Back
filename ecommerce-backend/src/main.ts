@@ -1,22 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { config } from 'dotenv';
 
-// Cargar variables de entorno desde el archivo .env
-config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
     origin: [
-      process.env.FRONTEND_URL ?? 'http://localhost:3000',  // para entorno local
-      'https://mcis-3-front.vercel.app/',  // Agrega tu URL de frontend desplegado en Vercel
-    ].filter(Boolean),
-    credentials: true,
+      'http://localhost:3000', // para pruebas locales
+      'https://mcis-3-front-rjcjbwir1-jacobos-projects-647b1425.vercel.app', // tu front en Vercel
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true, // si manejas cookies o headers con credenciales
   });
 
-  // Usar siempre el puerto inyectado por Railway
-  const port = process.env.PORT || 4000;  // Railway inyecta PORT
-  await app.listen(port);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
