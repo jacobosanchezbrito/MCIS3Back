@@ -7,26 +7,19 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    // 🚀 Crea un test account en Ethereal
-    nodemailer.createTestAccount().then((testAccount) => {
-      this.transporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure, // true para 465, false para otros puertos
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-
-      this.logger.log(`Cuenta de prueba Ethereal creada: ${testAccount.user}`);
-      this.logger.log(`Contraseña: ${testAccount.pass}`);
+    // 🚀 Configuración con Gmail en lugar de Ethereal
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail', // 👈 Usar el servicio Gmail
+      auth: {
+        user: process.env.GMAIL_USER, // tu correo Gmail
+        pass: process.env.GMAIL_APP_PASSWORD, // la contraseña de aplicación de 16 dígitos
+      },
     });
   }
 
   async sendMail(to: string, subject: string, text: string, html?: string) {
     const mailOptions = {
-      from: '"Mercado Cafetero" <no-reply@mercadocafetero.com>',
+      from: `"Mercado Cafetero" <${process.env.GMAIL_USER}>`, // 👈 aquí usas tu Gmail
       to,
       subject,
       text,
@@ -36,11 +29,8 @@ export class MailService {
     const info = await this.transporter.sendMail(mailOptions);
 
     this.logger.log(`Correo enviado: ${info.messageId}`);
-    this.logger.log(`Vista previa: ${nodemailer.getTestMessageUrl(info)}`);
-
     return {
       messageId: info.messageId,
-      previewUrl: nodemailer.getTestMessageUrl(info), // 👈 Link para ver el correo
     };
   }
 
