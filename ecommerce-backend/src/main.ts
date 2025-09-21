@@ -7,7 +7,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000', // para pruebas locales
-      'https://mcis-3-front-rjcjbwir1-jacobos-projects-647b1425.vercel.app', // tu front en Vercel
+      'mcis-3-front-jacobos-projects-647b1425.vercel.app', // tu front en Vercel
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
