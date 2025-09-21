@@ -10,7 +10,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       process.env.FRONTEND_URL ?? 'http://localhost:3000',  // para entorno local
-      'https://mcis-3-front-rjcjbwir1-jacobos-projects-647b1425.vercel.app',  // Agrega tu URL de frontend desplegado en Vercel
+      'https://mcis-3-front.vercel.app/',  // Agrega tu URL de frontend desplegado en Vercel
     ].filter(Boolean),
     credentials: true,
   });
