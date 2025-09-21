@@ -11,6 +11,6 @@ export class MailController {
     @Body('subject') subject: string,
     @Body('text') text: string,
   ) {
-    return this.mailService.sendTestMail(to, subject, text);
+    return this.mailService.sendMail(to, subject, text);
   }
 }

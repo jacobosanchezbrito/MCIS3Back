@@ -17,7 +17,7 @@ export class MailService {
     });
   }
 
-  async sendTestMail(to: string, subject: string, text: string, html?: string) {
+  async sendMail(to: string, subject: string, text: string, html?: string) {
     const mailOptions = {
       from: `"Mercado Cafetero" <${process.env.GMAIL_USER}>`, // 👈 aquí usas tu Gmail
       to,
@@ -43,6 +43,6 @@ export class MailService {
       <p>Unidades restantes: <strong>${stock}</strong></p>
     `;
 
-    return this.sendTestMail(to, subject, text, html);
+    return this.sendMail(to, subject, text, html);
   }
 }
