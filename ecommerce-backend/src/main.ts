@@ -5,9 +5,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: [
-      'http://localhost:3000', // local dev
-      'https://mcis-3-front-rjcjbwir1-jacobos-projects-647b1425.vercel.app', // vercel front
+      origin: [
+      'http://localhost:3000',
+      'https://mcis-3-front-rjcjbwir1-jacobos-projects-647b1425.vercel.app',
+      'https://mcis-3-front.vercel.app',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
