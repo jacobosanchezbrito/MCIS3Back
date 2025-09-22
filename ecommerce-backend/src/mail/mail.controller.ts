@@ -6,7 +6,7 @@ export class MailController {
   constructor(private readonly mailService: MailService) {}
 
   @Post('send')
-  async sendTestMail(
+  async sendMail(
     @Body('to') to: string,
     @Body('subject') subject: string,
     @Body('text') text: string,
