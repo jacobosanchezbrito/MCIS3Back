@@ -1,37 +1,40 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private transporter;
+  private resend: Resend;
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
-    // 🚀 Configuración con Gmail en lugar de Ethereal
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail', // 👈 Usar el servicio Gmail
-      auth: {
-        user: process.env.GMAIL_USER, // tu correo Gmail
-        pass: process.env.GMAIL_APP_PASSWORD, // la contraseña de aplicación de 16 dígitos
-      },
-    });
+    if (!process.env.RESEND_API_KEY) {
+      this.logger.warn('⚠️ RESEND_API_KEY no está configurada. No se enviarán correos.');
+    }
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   async sendMail(to: string, subject: string, text: string, html?: string) {
-    const mailOptions = {
-      from: `"Mercado Cafetero" <${process.env.GMAIL_USER}>`, // 👈 aquí usas tu Gmail
-      to,
-      subject,
-      text,
-      html,
-    };
+    try {
+      const response = await this.resend.emails.send({
+        from: process.env.RESEND_SENDER || 'Mercado Cafetero <no-reply@resend.dev>',
+        to: [to],
+        subject,
+        text,
+        html,
+        replyTo: process.env.RESEND_REPLY_TO || undefined,
+      });
 
-    const info = await this.transporter.sendMail(mailOptions);
+      if (response.error) {
+        this.logger.error(`❌ Error al enviar correo: ${response.error.message}`);
+        throw new Error(response.error.message);
+      }
 
-    this.logger.log(`Correo enviado: ${info.messageId}`);
-    return {
-      messageId: info.messageId,
-    };
+      this.logger.log(`✅ Correo enviado con Resend. ID: ${response.data?.id}`);
+      return { id: response.data?.id };
+    } catch (error: any) {
+      this.logger.error(`❌ Error inesperado al enviar correo: ${error.message}`);
+      throw error;
+    }
   }
 
   async sendStockAlert(to: string, producto: string, stock: number) {
