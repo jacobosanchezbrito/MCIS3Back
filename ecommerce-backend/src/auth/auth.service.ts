@@ -48,15 +48,8 @@ export class AuthService {
 
     const confirmUrl = `http://localhost:3000/auth/confirm-email?token=${verificationCode}`;
 
-    await this.mailService.sendMail(
-      user.email,
-      'Confirma tu cuenta',
-      `Tu código de verificación es: ${verificationCode}`,
-      `<p>Hola, ${user.nombre}</p>
-      <p>Bienvenido a Mercado Cafetero ☕</p>
-      <p>Tu código de verificación es: <b>${verificationCode}</b></p>
-      <p>Este código expira en 15 minutos.</p>`
-    );
+    await this.mailService.sendVerificationCode(user.email, verificationCode);
+
 
     const { password, verificationCode: _, verificationExpires: __, ...result } = user;
     return { message: 'Registro exitoso. Revisa tu correo para confirmar la cuenta.', user: result };
